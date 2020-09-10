@@ -26,7 +26,7 @@
                 app:srcCompat="@drawable/developeru" />
 
             <EditText
-                android:id="@+id/edtUsuario"
+                android:id="@+id/txtusu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -39,7 +39,7 @@
                 android:paddingLeft="5dp" />
 
             <EditText
-                android:id="@+id/edtPassword"
+                android:id="@+id/txtpas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -50,17 +50,18 @@
                 android:ems="10"
                 android:hint="Password"
                 android:inputType="textPassword"
-                android:paddingLeft="5dp" />
+                android:paddingLeft="5dp"
+                android:autofillHints="" />
 
             <Button
-                android:id="@+id/btnLogin"
+                android:id="@+id/btnIngresar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
                 android:layout_marginTop="30dp"
                 android:layout_marginRight="15dp"
                 android:background="#1976d2"
-                android:text="Iniciar Sesión"
+                android:text="@string/iniciar_sesi_n"
                 android:textColor="#FFF"
                 android:textSize="18sp" />
 

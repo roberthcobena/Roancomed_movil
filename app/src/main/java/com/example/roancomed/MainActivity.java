@@ -11,93 +11,99 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import org.json.JSONArray;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    EditText edtUsuario,edtPassword;
+    EditText txtUsu,txtPas;
     Button btnLogin;
-    String usuario, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        edtUsuario=findViewById(R.id.edtUsuario);
-        edtPassword=findViewById(R.id.edtPassword);
-        btnLogin=findViewById(R.id.btnLogin);
+        txtUsu=findViewById(R.id.txtusu);
+        txtPas=findViewById(R.id.txtpas);
+        btnLogin=findViewById(R.id.btnIngresar);
 
         recuperarPreferencias();
 
-
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                usuario=edtUsuario.getText().toString();
-                password=edtPassword.getText().toString();
-                if(!usuario.isEmpty() && !password.isEmpty()){
-                    ValidarUsuario("http://192.168.1.11/roancomed/vendor/android/servicios/validar_usuario.php");
-                }else{
-                    Toast.makeText(MainActivity.this,"Por favor ingrese sus credenciales",Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        btnLogin.setOnClickListener(this);
     }
 
-    private  void ValidarUsuario(String URL){
-        StringRequest stringRequest=new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
+    @Override
+    public void onClick(View v) {
+        Thread tr= new Thread(){
             @Override
-            public void onResponse(String response) {
-                if(!response.isEmpty()){
-                    guardarPreferencias();
-                    Intent intent=new Intent(getApplicationContext(),PrincipalActivity.class);
-                    startActivity(intent);
-                    finish();
-                }else{
-                    Toast.makeText(MainActivity.this, "Usuario o contraseña incorrecta", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }, new Response.ErrorListener(){
-            @Override
-            public  void onErrorResponse(VolleyError error){
-                Toast.makeText(MainActivity.this,error.toString(), Toast.LENGTH_SHORT).show();
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String,String> parametros=new HashMap<String, String>();
-                parametros.put("usuario",usuario);
-                parametros.put("password",password);
-                return parametros;
+            public void run() {
+                final String resultado=enviarDatos(txtUsu.getText().toString(),txtPas.getText().toString());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        int r=obtenerDatos(resultado);
+                        if (r>0){
+                            Intent i=new Intent(getApplicationContext(),PrincipalActivity.class);
+                            i.putExtra("email",txtUsu.getText().toString());
+                            startActivity(i);
+                        }else{
+                            Toast.makeText(getApplicationContext(),"Usuario o Contraseña incorrectos",Toast.LENGTH_LONG).show();
+                            txtUsu.setText(null);
+                            txtPas.setText(null);
+                        }
+                    }
+                });
             }
         };
-
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        stringRequest.setShouldCache(false);
-        requestQueue.add(stringRequest);
+        tr.start();
     }
 
-    private void  guardarPreferencias(){
-        SharedPreferences preferences=getSharedPreferences("PreferenciasLogin", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=preferences.edit();
-        editor.putString("usuario",usuario);
-        editor.putString("password",password);
-        editor.putBoolean("sesion",true);
-        editor.commit();
+    private String enviarDatos(String usu, String pas) {
+        URL url = null;
+        String linea = "";
+        int respuesta = 0;
+        StringBuilder resul = null;
+
+        try {
+            url = new URL("http://192.168.1.11/roancomed/vendor/android/servicios/validar_usuario.php?usuario=" + usu + "&password=" + pas);
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            respuesta = connection.getResponseCode();
+
+            resul = new StringBuilder();
+            if (respuesta == HttpURLConnection.HTTP_OK) {
+                InputStream in = new BufferedInputStream(connection.getInputStream());
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                while ((linea = reader.readLine()) != null) {
+                    resul.append(linea);
+                }
+            }
+        }catch (Exception e) {}
+        return resul.toString();
     }
+
+    public int obtenerDatos(String response){
+        int res=0;
+            try{
+                JSONArray json = new JSONArray(response);
+                if (json.length()>0){
+                    res=1;
+                }
+            }catch (Exception e){}
+        return res;
+    }
+
 
     private void recuperarPreferencias(){
         SharedPreferences preferences=getSharedPreferences("PreferenciasLogin", Context.MODE_PRIVATE);
-        edtUsuario.setText(preferences.getString("usuario","correo@correo.com"));
-        edtPassword.setText(preferences.getString("password","Contraseña"));
+        txtUsu.setHint(preferences.getString("usuario","Ingrese correo"));
+        txtPas.setHint(preferences.getString("password","Ingrese Contraseña"));
     }
+
+
 }
