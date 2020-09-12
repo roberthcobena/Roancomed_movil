@@ -8,9 +8,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class PrincipalActivity extends AppCompatActivity {
 
+    public static final String nombres = "nombres";
+    public static final String id= "id";
+
+    TextView cajaHola;
     Button btnCerrar;
 
     @Override
@@ -18,13 +23,13 @@ public class PrincipalActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principal);
         btnCerrar=findViewById(R.id.btnCerrar);
+        cajaHola = (TextView)findViewById(R.id.textView);
+        String usuario = getIntent().getStringExtra("nombres");
+        cajaHola.setText("Bienvenido " + usuario);
 
         btnCerrar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences preferences=getSharedPreferences("PreferenciasLogin", Context.MODE_PRIVATE);
-                preferences.edit().clear().commit();
-
                 Intent intent= new Intent(getApplicationContext(),MainActivity.class);
                 startActivity(intent);
                 finish();
