@@ -1,7 +1,6 @@
 package com.example.roancomed;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -30,7 +29,7 @@ public class SessionFragment extends Fragment implements Response.Listener<JSONO
     RequestQueue rq;
     JsonRequest jrq;
     EditText cajaUser, cajaPwd;
-    Button btnIngresar;
+    Button btnIngresar, btnRegistrar;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,19 +37,26 @@ public class SessionFragment extends Fragment implements Response.Listener<JSONO
         // Inflate the layout for this fragment
         //return inflater.inflate(R.layout.fragment_session, container, false);
         View vista = inflater.inflate(R.layout.fragment_session, container, false);
-        cajaUser=(EditText) vista.findViewById(R.id.txtusu);
+        cajaUser=(EditText) vista.findViewById(R.id.txtemail);
         cajaPwd=(EditText) vista.findViewById(R.id.txtpas);
         btnIngresar=(Button) vista.findViewById(R.id.btnIngresar);
+        btnRegistrar=(Button) vista.findViewById(R.id.btnRegistro);
         rq = Volley.newRequestQueue(getContext());
 
-        btnIngresar.setOnClickListener(new View.OnClickListener() {
+        btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                iniciarSesion();
+            public void onClick(View view) {
+                registar_usuario();
             }
         });
 
-        return vista;
+        btnIngresar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                iniciarSesion();
+            }
+        });
+        return inflater.inflate(R.layout.fragment_session, container, false);
     }
 
 
@@ -62,7 +68,7 @@ public class SessionFragment extends Fragment implements Response.Listener<JSONO
     @Override
     public void onResponse(JSONObject response) {
         User usuario = new User();
-        Toast.makeText(getContext(), "Se ha encontrado el usuario " + cajaUser.getText().toString(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Bienvenido " + cajaUser.getText().toString(), Toast.LENGTH_SHORT).show();
         JSONArray jsonArray = response.optJSONArray("datos");
         JSONObject jsonObject = null;
         try{
@@ -81,9 +87,17 @@ public class SessionFragment extends Fragment implements Response.Listener<JSONO
         startActivity(intencion);
     }
 
-    private void iniciarSesion(){
-        String url= "http://192.168.1.11/roancomed/vendor/android/servicios/validar_usuario.php?usuario="+cajaUser.getText().toString()+"&password="+cajaPwd.getText().toString();
+    void iniciarSesion(){
+        String url= "https://roancomed.000webhostapp.com/vendor/android/servicios/validar_usuario.php?usuario="+cajaUser.getText().toString()+"&password="+cajaPwd.getText().toString();
         jrq = new JsonObjectRequest(Request.Method.GET, url, null, this, this);
         rq.add(jrq);
+    }
+
+    void registar_usuario(){
+        RegistrarFragment fr = new RegistrarFragment();
+        getActivity().getSupportFragmentManager().beginTransaction()
+                .replace(R.id.escenario,fr)
+                .addToBackStack(null)
+                .commit();
     }
 }
